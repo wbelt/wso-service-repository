@@ -1,8 +1,8 @@
 import os
 from datetime import datetime
-from flask import Flask, render_template, request, redirect, url_for, send_from_directory
+from flask import Flask, render_template, request, redirect, send_file, url_for, send_from_directory
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder="templates")
 
 @app.route('/')
 def index():
@@ -24,6 +24,26 @@ def hello():
    else:
        print('Request for hello page received with no name or blank name -- redirecting')
        return redirect(url_for('index'))
+
+@app.route("/css/<path:path>")
+def cssFileRoute(path):
+   print(f'Request for css received { path }')
+   return send_file('static/sbs/css/' + path)
+
+@app.route("/js/<path:path>")
+def jsFileRoute(path):
+   print(f'Request for js received { path }')
+   return send_file('static/sbs/js/' + path)
+
+@app.route("/assets/<path:path>")
+def assetsFileRoute(path):
+   print(f'Request for assets received { path }')
+   return send_file('static/sbs/assets/' + path)
+
+@app.route("/<path:path>")
+def templateFileRoute(path):
+   print('Request for templateFileRoute received')
+   return render_template(path)
 
 if __name__ == '__main__':
    app.run()
