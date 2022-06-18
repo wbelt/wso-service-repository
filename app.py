@@ -28,17 +28,17 @@ def hello():
 @app.route("/css/<path:path>")
 def cssFileRoute(path):
    print(f'Request for css received { path }')
-   return send_file('static/sbs/css/' + path)
+   return send_from_directory('static/sbs/css', path)
 
 @app.route("/js/<path:path>")
 def jsFileRoute(path):
    print(f'Request for js received { path }')
-   return send_file('static/sbs/js/' + path)
+   return send_from_directory('static/sbs/js', path)
 
 @app.route("/assets/<path:path>")
 def assetsFileRoute(path):
    print(f'Request for assets received { path }')
-   return send_file('static/sbs/assets/' + path)
+   return send_from_directory('static/sbs/assets', path)
 
 @app.route("/<path:path>")
 def templateFileRoute(path):
