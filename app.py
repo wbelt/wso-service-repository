@@ -36,36 +36,30 @@ trace.get_tracer_provider().add_span_processor(span_processor)
 app = Flask(__name__)
 FlaskInstrumentor().instrument_app(app, excluded_urls="hello")
 
-
 @app.route('/')
 def index():
-    return render_template('index.html')
-
+    services=getServices()
+    return render_template('index.html', list=services)
 
 @app.route('/favicon.ico')
 def favicon():
     return send_from_directory(os.path.join(app.root_path, 'static/images'), 'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
-
 @app.route('/hello')
 def hello():
     return render_template('hello.html', name="Test, I am here!")
-
 
 @app.route("/css/<path:path>")
 def cssFileRoute(path):
     return send_from_directory('static/sbs/css', path)
 
-
 @app.route("/js/<path:path>")
 def jsFileRoute(path):
     return send_from_directory('static/sbs/js', path)
 
-
 @app.route("/assets/<path:path>")
 def assetsFileRoute(path):
     return send_from_directory('static/sbs/assets', path)
-
 
 @app.route("/<path:path>")
 def genericTemplatePath(path):
@@ -75,16 +69,20 @@ def genericTemplatePath(path):
         logger.warning(f"404: template file not found for '{ path }'")
         return render_template('404.html'), 404
 
+@tracer.start_as_current_span("DB: get all services")
+@provide_db_services_c
+def getServices(c):
+    items = list(c.read_all_items(max_item_count=100))
+    return items
 
+@tracer.start_as_current_span("DB: count query")
 @provide_db_services_c
 def countServices(c):
-    with tracer.start_as_current_span("count database query"):
-        items = list(c.query_items(
-            query="SELECT VALUE COUNT(1) FROM c",
-            enable_cross_partition_query=True
-        ))
+    items = list(c.query_items(
+        query="SELECT VALUE COUNT(1) FROM c",
+        enable_cross_partition_query=True
+    ))
     return items[0]
-
 
 if __name__ == '__main__':
     logger.info("application started")

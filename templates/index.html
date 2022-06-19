@@ -172,7 +172,8 @@
                                             <th>Service</th>
                                             <th>Namespace</th>
                                             <th>Owner</th>
-                                            <th>Position</th>
+                                            <th>Version</th>
+                                            <th>Released</th>
                                             <th>Repo Link</th>
                                         </tr>
                                     </thead>
@@ -181,67 +182,22 @@
                                             <th>Service</th>
                                             <th>Namespace</th>
                                             <th>Owner</th>
-                                            <th>Position</th>
+                                            <th>Version</th>
+                                            <th>Released</th>
                                             <th>Repo Link</th>
                                         </tr>
                                     </tfoot>
                                     <tbody>
+                                    {% for item in list %}
                                         <tr>
-                                            <td>service.compute.ec2</td>
-                                            <td>service.compute</td>
-                                            <td>Sonya Frost</td>
-                                            <td>System Architect</td>
-                                            <td>Link</td>
+                                            <td>{{ item.id }}</td>
+                                            <td>{{ item.serviceNamespace }}</td>
+                                            <td>{{ item.serviceOwner }}</td>
+                                            <td>{{ item.serviceVersion }}</td>
+                                            <td>{{ item.serviceReleaseDate }}</td>
+                                            <td>{{ item.serviceRepositoryLink }}</td>
                                         </tr>
-                                        <tr>
-                                            <td>service.storage.aws.ebs.gp3</td>
-                                            <td>service.storage.aws</td>
-                                            <td>Rhona Davidson</td>
-                                            <td>Integration Specialist</td>
-                                            <td>Link</td>
-                                        </tr>
-                                        <tr>
-                                            <td>security.identity.ad.group</td>
-                                            <td>security.identity.ad</td>
-                                            <td>Ashton Cox</td>
-                                            <td>Junior Technical Author</td>
-                                            <td>Link</td>
-                                        </tr>
-                                        <tr>
-                                            <td>service.network.aws.vpc</td>
-                                            <td>service.network</td>
-                                            <td>Airi Satou</td>
-                                            <td>Sr. Network Enginener</td>
-                                            <td>Link</td>
-                                        </tr>
-                                        <tr>
-                                            <td>service.cloud.aws.account</td>
-                                            <td>service.cloud.aws</td>
-                                            <td>Brielle Williamson</td>
-                                            <td>Integration Specialist</td>
-                                            <td>Link</td>
-                                        </tr>
-                                        <tr>
-                                            <td>security.identity.ad.group</td>
-                                            <td>security.identity.ad</td>
-                                            <td>Herrod Chandler</td>
-                                            <td>Sales Assistant</td>
-                                            <td>Link</td>
-                                        </tr>
-                                        <tr>
-                                            <td>security.identity.ad.group</td>
-                                            <td>security.identity.ad</td>
-                                            <td>Rhona Davidson</td>
-                                            <td>Integration Specialist</td>
-                                            <td>Link</td>
-                                        </tr>
-                                        <tr>
-                                            <td>security.identity.ad.group</td>
-                                            <td>security.identity.ad</td>
-                                            <td>Colleen Hurst</td>
-                                            <td>Javascript Developer</td>
-                                            <td>Link</td>
-                                        </tr>
+                                    {% endfor %}
                                     </tbody>
                                 </table>
                             </div>
