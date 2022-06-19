@@ -32,7 +32,7 @@ span_processor = BatchSpanProcessor(exporter)
 trace.get_tracer_provider().add_span_processor(span_processor)
 
 app = Flask(__name__)
-FlaskInstrumentor().instrument_app(app, excluded_urls="client/.*/info,healthcheck")
+FlaskInstrumentor().instrument_app(app, excluded_urls="hello")
 
 @app.route('/')
 def index():
