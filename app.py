@@ -1,13 +1,29 @@
-import os
+import os, logging
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, send_file, url_for, send_from_directory
 from db import provide_db_services_c
+from opentelemetry import trace
+from opentelemetry.instrumentation.requests import RequestsInstrumentor
+from opentelemetry.instrumentation.flask import FlaskInstrumentor
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from azure.monitor.opentelemetry.exporter import AzureMonitorTraceExporter
+
+exporter = AzureMonitorTraceExporter.from_connection_string(
+    os.environ.get('traceConnectrionString')
+)
+
+trace.set_tracer_provider(TracerProvider())
+tracer = trace.get_tracer(__name__)
+span_processor = BatchSpanProcessor(exporter)
+trace.get_tracer_provider().add_span_processor(span_processor)
 
 app = Flask(__name__, template_folder="templates")
+FlaskInstrumentor().instrument_app(app)
+RequestsInstrumentor().instrument()
 
 @app.route('/')
 def index():
-   print('Request for index page received')
    return render_template('index.html')
 
 @app.route('/favicon.ico')
@@ -17,8 +33,9 @@ def favicon():
 
 @app.route('/hello')
 def hello():
-   print('Request for hello page received')
-   return render_template('hello.html', name = "Test, I am here!")
+   tracer = trace.get_tracer(__name__)
+   with tracer.start_as_current_span("Hello page render"):
+      return render_template('hello.html', name = "Test, I am here!")
 
 @app.route("/css/<path:path>")
 def cssFileRoute(path):
