@@ -2,9 +2,11 @@ import os, logging
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, send_file, url_for, send_from_directory
 from db import provide_db_services_c
+
 from opentelemetry import trace
 from opentelemetry.instrumentation.flask import FlaskInstrumentor
 from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.trace.status import Status, StatusCode
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from azure.monitor.opentelemetry.exporter import AzureMonitorTraceExporter
 from opentelemetry.sdk.resources import SERVICE_NAME, SERVICE_NAMESPACE, SERVICE_INSTANCE_ID, Resource
@@ -69,6 +71,9 @@ def genericTemplatePath(path):
          print('Request for templateFileRoute received')
          return render_template(path)
       else:
+         span = trace.get_current_span()
+         span.record_exception(FileNotFoundError(f"file { path } not found"))
+         span.set_status(Status(StatusCode.ERROR, f"file { path } not found"))
          return render_template('404.html'), 404
 
 @provide_db_services_c
@@ -81,4 +86,3 @@ def countServices(c):
 
 if __name__ == '__main__':
    app.run()
-   tracer.start_as_current_span()
