@@ -40,7 +40,7 @@ def index():
 @app.route('/favicon.ico')
 def favicon():
    with tracer.start_as_current_span("favorite icon"):
-      return send_from_directory(os.path.join(app.root_path, 'static\images'), 'favicon.ico', mimetype='image/vnd.microsoft.icon')
+      return send_from_directory(os.path.join(app.root_path, 'static/images'), 'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 @app.route('/hello')
 def hello():
