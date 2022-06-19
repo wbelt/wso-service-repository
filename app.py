@@ -3,7 +3,6 @@ from datetime import datetime
 from flask import Flask, render_template, request, redirect, send_file, url_for, send_from_directory
 from db import provide_db_services_c
 from opentelemetry import trace
-from opentelemetry.instrumentation.requests import RequestsInstrumentor
 from opentelemetry.instrumentation.flask import FlaskInstrumentor
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
@@ -18,9 +17,9 @@ trace.set_tracer_provider(
     TracerProvider(
         resource=Resource.create(
             {
-                SERVICE_NAME: "wso-service-repository-ui",
-                SERVICE_NAMESPACE: "service-repository",
-                SERVICE_INSTANCE_ID: "ui",
+                SERVICE_NAME: "webui",
+                SERVICE_NAMESPACE: "wso.core.service.repository",
+                SERVICE_INSTANCE_ID: "main",
             }
         )
     )
