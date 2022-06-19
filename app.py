@@ -41,47 +41,42 @@ def index():
 
 @app.route('/favicon.ico')
 def favicon():
-   with tracer.start_as_current_span("favorite icon"):
-      return send_from_directory(os.path.join(app.root_path, 'static/images'), 'favicon.ico', mimetype='image/vnd.microsoft.icon')
+   return send_from_directory(os.path.join(app.root_path, 'static/images'), 'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 @app.route('/hello')
 def hello():
-   with tracer.start_as_current_span("hello page render"):
-      return render_template('hello.html', name = "Test, I am here!")
+   return render_template('hello.html', name = "Test, I am here!")
 
 @app.route("/css/<path:path>")
 def cssFileRoute(path):
-   with tracer.start_as_current_span("css file render"):
-      return send_from_directory('static/sbs/css', path)
+   return send_from_directory('static/sbs/css', path)
 
 @app.route("/js/<path:path>")
 def jsFileRoute(path):
-   with tracer.start_as_current_span("js file render"):
-      return send_from_directory('static/sbs/js', path)
+   return send_from_directory('static/sbs/js', path)
 
 @app.route("/assets/<path:path>")
 def assetsFileRoute(path):
-   with tracer.start_as_current_span("assets file render"):
-      return send_from_directory('static/sbs/assets', path)
+   return send_from_directory('static/sbs/assets', path)
 
 @app.route("/<path:path>")
 def genericTemplatePath(path):
-   with tracer.start_as_current_span("templates file render"):
-      if os.path.exists(os.path.join('templates', path)):
-         print('Request for templateFileRoute received')
-         return render_template(path)
-      else:
-         span = trace.get_current_span()
-         span.record_exception(FileNotFoundError(f"file { path } not found"))
-         span.set_status(Status(StatusCode.ERROR, f"file { path } not found"))
-         return render_template('404.html'), 404
+   if os.path.exists(os.path.join('templates', path)):
+      print('Request for templateFileRoute received')
+      return render_template(path)
+   else:
+      span = trace.get_current_span()
+      span.record_exception(FileNotFoundError(f"file { path } not found"))
+      span.set_status(Status(StatusCode.ERROR, f"file { path } not found"))
+      return render_template('404.html'), 404
 
 @provide_db_services_c
 def countServices(c):
-   items = list(c.query_items(
-      query="SELECT VALUE COUNT(1) FROM c",
-      enable_cross_partition_query=True
-   ))
+   with tracer.start_as_current_span("count database query"):
+      items = list(c.query_items(
+         query="SELECT VALUE COUNT(1) FROM c",
+         enable_cross_partition_query=True
+      ))
    return items[0]
 
 if __name__ == '__main__':
