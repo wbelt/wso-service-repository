@@ -65,9 +65,6 @@ def genericTemplatePath(path):
       print('Request for templateFileRoute received')
       return render_template(path)
    else:
-      span = trace.get_current_span()
-      span.record_exception(FileNotFoundError(f"file { path } not found"))
-      span.set_status(Status(StatusCode.ERROR, f"file { path } not found"))
       return render_template('404.html'), 404
 
 @provide_db_services_c
