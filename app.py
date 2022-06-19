@@ -18,7 +18,7 @@ def favicon():
 @app.route('/hello')
 def hello():
    print('Request for hello page received')
-   return render_template('hello.html', name = countServices())
+   return render_template('hello.html', name = "Test, I am here!")
 
 @app.route("/css/<path:path>")
 def cssFileRoute(path):
