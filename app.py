@@ -8,19 +8,29 @@ from opentelemetry.instrumentation.flask import FlaskInstrumentor
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from azure.monitor.opentelemetry.exporter import AzureMonitorTraceExporter
+from opentelemetry.sdk.resources import SERVICE_NAME, SERVICE_NAMESPACE, SERVICE_INSTANCE_ID, Resource
 
 exporter = AzureMonitorTraceExporter.from_connection_string(
     os.environ.get('traceConnectrionString')
 )
 
-trace.set_tracer_provider(TracerProvider())
+trace.set_tracer_provider(
+    TracerProvider(
+        resource=Resource.create(
+            {
+                SERVICE_NAME: "wso-service-repository-ui",
+                SERVICE_NAMESPACE: "service-repository",
+                SERVICE_INSTANCE_ID: "ui",
+            }
+        )
+    )
+)
 tracer = trace.get_tracer(__name__)
 span_processor = BatchSpanProcessor(exporter)
 trace.get_tracer_provider().add_span_processor(span_processor)
 
-app = Flask(__name__, template_folder="templates")
-FlaskInstrumentor().instrument_app(app)
-RequestsInstrumentor().instrument()
+app = Flask(__name__)
+FlaskInstrumentor().instrument_app(app, excluded_urls="client/.*/info,healthcheck")
 
 @app.route('/')
 def index():
