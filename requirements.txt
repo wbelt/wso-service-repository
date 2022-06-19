@@ -1,5 +1,4 @@
 Flask==2.1.2
 azure-cosmos==4.3.0
-family==0.2.6
 azure-monitor-opentelemetry-exporter==1.0.0b6
 opentelemetry-instrumentation-flask==0.31b0

@@ -1,8 +1,7 @@
 
+import os
 from azure.cosmos import exceptions, CosmosClient, PartitionKey
 from functools import wraps
-import os, family
-from requests import request
 
 endpoint = "https://diydev-control-plane-db.documents.azure.com:443/"
 
@@ -14,6 +13,7 @@ def provide_db_client(func):
         return func(client, *args, **kwargs)
     return new_function
 
+
 def provide_db_service_repository(func):
     @wraps(func)
     @provide_db_client
@@ -21,6 +21,7 @@ def provide_db_service_repository(func):
         db = client.get_database_client("service-repository")
         return func(db, *args, **kwargs)
     return new_function
+
 
 def provide_db_services_c(func):
     @wraps(func)
@@ -30,6 +31,7 @@ def provide_db_services_c(func):
         return func(c, *args, **kwargs)
     return new_function
 
+
 @provide_db_client
 def list_databases(client):
     databases = list(client.list_databases())
@@ -38,6 +40,7 @@ def list_databases(client):
     for database in databases:
         print(database['id'])
 
+
 @provide_db_service_repository
 def list_containers(db):
     containers = list(db.list_containers())
@@ -45,6 +48,7 @@ def list_containers(db):
         return
     for container in containers:
         print(container['id'])
+
 
 @provide_db_services_c
 def list_items(c):
@@ -57,5 +61,6 @@ def list_items(c):
     for item in items:
         print(item['id'])
 
+
 if __name__ == '__main__':
-   print(list_containers())
+    print(list_containers())
