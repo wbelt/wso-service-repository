@@ -36,8 +36,7 @@ FlaskInstrumentor().instrument_app(app, excluded_urls="hello")
 
 @app.route('/')
 def index():
-   with tracer.start_as_current_span("index home page"):
-      return render_template('index.html')
+   return render_template('index.html')
 
 @app.route('/favicon.ico')
 def favicon():
@@ -62,7 +61,6 @@ def assetsFileRoute(path):
 @app.route("/<path:path>")
 def genericTemplatePath(path):
    if os.path.exists(os.path.join('templates', path)):
-      print('Request for templateFileRoute received')
       return render_template(path)
    else:
       return render_template('404.html'), 404
