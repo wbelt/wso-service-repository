@@ -37,8 +37,12 @@ def assetsFileRoute(path):
 
 @app.route("/<path:path>")
 def templateFileRoute(path):
-   print('Request for templateFileRoute received')
-   return render_template(path)
+   if os.path.exists(os.path.join('templates', path)):
+      print('Request for templateFileRoute received')
+      return render_template(path)
+   else:
+      return render_template('404.html'), 404
+
 
 @provide_db_services_c
 def countServices(c):
