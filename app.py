@@ -9,10 +9,6 @@ from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from azure.monitor.opentelemetry.exporter import AzureMonitorTraceExporter
 from opentelemetry.sdk.resources import SERVICE_NAME, SERVICE_NAMESPACE, SERVICE_INSTANCE_ID, Resource
 
-exporter = AzureMonitorTraceExporter.from_connection_string(
-    os.environ.get('traceConnectrionString')
-)
-
 trace.set_tracer_provider(
     TracerProvider(
         resource=Resource.create(
@@ -24,6 +20,11 @@ trace.set_tracer_provider(
         )
     )
 )
+
+exporter = AzureMonitorTraceExporter.from_connection_string(
+    os.environ.get('traceConnectrionString')
+)
+
 tracer = trace.get_tracer(__name__)
 span_processor = BatchSpanProcessor(exporter)
 trace.get_tracer_provider().add_span_processor(span_processor)
@@ -33,42 +34,42 @@ FlaskInstrumentor().instrument_app(app, excluded_urls="client/.*/info,healthchec
 
 @app.route('/')
 def index():
-   return render_template('index.html')
+   with tracer.start_as_current_span("index home page"):
+      return render_template('index.html')
 
 @app.route('/favicon.ico')
 def favicon():
-    return send_from_directory(os.path.join(app.root_path, 'static\images'),
-                               'favicon.ico', mimetype='image/vnd.microsoft.icon')
+   with tracer.start_as_current_span("favorite icon"):
+      return send_from_directory(os.path.join(app.root_path, 'static\images'), 'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 @app.route('/hello')
 def hello():
-   tracer = trace.get_tracer(__name__)
-   with tracer.start_as_current_span("Hello page render"):
+   with tracer.start_as_current_span("hello page render"):
       return render_template('hello.html', name = "Test, I am here!")
 
 @app.route("/css/<path:path>")
 def cssFileRoute(path):
-   print(f'Request for css received { path }')
-   return send_from_directory('static/sbs/css', path)
+   with tracer.start_as_current_span("css file render"):
+      return send_from_directory('static/sbs/css', path)
 
 @app.route("/js/<path:path>")
 def jsFileRoute(path):
-   print(f'Request for js received { path }')
-   return send_from_directory('static/sbs/js', path)
+   with tracer.start_as_current_span("js file render"):
+      return send_from_directory('static/sbs/js', path)
 
 @app.route("/assets/<path:path>")
 def assetsFileRoute(path):
-   print(f'Request for assets received { path }')
-   return send_from_directory('static/sbs/assets', path)
+   with tracer.start_as_current_span("assets file render"):
+      return send_from_directory('static/sbs/assets', path)
 
 @app.route("/<path:path>")
-def templateFileRoute(path):
-   if os.path.exists(os.path.join('templates', path)):
-      print('Request for templateFileRoute received')
-      return render_template(path)
-   else:
-      return render_template('404.html'), 404
-
+def genericTemplatePath(path):
+   with tracer.start_as_current_span("templates file render"):
+      if os.path.exists(os.path.join('templates', path)):
+         print('Request for templateFileRoute received')
+         return render_template(path)
+      else:
+         return render_template('404.html'), 404
 
 @provide_db_services_c
 def countServices(c):
@@ -80,3 +81,4 @@ def countServices(c):
 
 if __name__ == '__main__':
    app.run()
+   tracer.start_as_current_span()
