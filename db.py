@@ -8,7 +8,7 @@ def provide_db_client(func):
     @wraps(func)
     def new_function(*args, **kwargs):
         client = CosmosClient.from_connection_string(
-            os.environ.get('dbConnectionString'))
+            os.environ['wsoMainConnectionString'])
         return func(client, *args, **kwargs)
     return new_function
 
