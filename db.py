@@ -1,5 +1,5 @@
 
-import os
+import os, re
 from azure.cosmos import exceptions, CosmosClient, PartitionKey
 from functools import wraps
 
@@ -7,8 +7,8 @@ from functools import wraps
 def provide_db_client(func):
     @wraps(func)
     def new_function(*args, **kwargs):
-        client = CosmosClient.from_connection_string(
-            os.environ['wsoMainConnectionString'])
+        csValues = re.match('(.*?)=(.*?);(.*?)=(.*);', os.environ['wsoMainConnectionString'])
+        client = CosmosClient(csValues.groups()[1],csValues.groups()[3])
         return func(client, *args, **kwargs)
     return new_function
 
