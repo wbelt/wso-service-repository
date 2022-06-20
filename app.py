@@ -51,7 +51,7 @@ def favicon():
 
 @app.route('/hello')
 def hello():
-    return render_template('hello.html', name="Test, I am here!")
+    return render_template('hello.html')
 
 
 @app.route("/css/<path:path>")
