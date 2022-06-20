@@ -29,11 +29,10 @@ trace.set_tracer_provider(
     )
 )
 
-trace.logger = logger
 span_processor = BatchSpanProcessor(exporter)
 trace.get_tracer_provider().add_span_processor(span_processor)
 
-t = trace.get_tracer(__name__)
+mainTracer = trace.get_tracer(__name__)
 
 app = Flask(__name__)
 
@@ -71,13 +70,13 @@ def genericTemplatePath(path):
         logger.warning(f"404: template file not found for '{ path }'")
         return render_template('404.html'), 404
 
-@t.start_as_current_span("DB: get all services")
+@mainTracer.start_as_current_span("DB: get all services")
 @provide_db_services_c
 def getServices(c):
     items = list(c.read_all_items(max_item_count=100))
     return items
 
-@t.start_as_current_span("DB: count query")
+@mainTracer.start_as_current_span("DB: count query")
 @provide_db_services_c
 def countServices(c):
     items = list(c.query_items(
