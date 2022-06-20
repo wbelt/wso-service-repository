@@ -15,7 +15,7 @@ from opentelemetry.sdk.resources import SERVICE_NAME, SERVICE_NAMESPACE, SERVICE
 logging.basicConfig(format="%(asctime)s:%(levelname)s:%(message)s")
 logger = logging.getLogger(__name__)
 
-exporter = AzureMonitorTraceExporter.from_connection_string(os.environ.get('traceConnectrionString'))
+exporter = AzureMonitorTraceExporter.from_connection_string(os.environ.get('traceConnectionString'))
 
 trace.set_tracer_provider(
     TracerProvider(
