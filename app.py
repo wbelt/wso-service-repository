@@ -1,6 +1,5 @@
 import os
 import logging
-from trace import Trace
 from flask import Flask, redirect, render_template, send_from_directory
 from db import provide_db_services_c
 
