@@ -3,12 +3,15 @@ import os
 from azure.cosmos import exceptions, CosmosClient, PartitionKey
 from functools import wraps
 
+
 def provide_db_client(func):
     @wraps(func)
     def new_function(*args, **kwargs):
-        client = CosmosClient.from_connection_string(os.environ.get('dbConnectionString'))
+        client = CosmosClient.from_connection_string(
+            os.environ.get('dbConnectionString'))
         return func(client, *args, **kwargs)
     return new_function
+
 
 def provide_db_service_repository(func):
     @wraps(func)
@@ -18,6 +21,7 @@ def provide_db_service_repository(func):
         return func(db, *args, **kwargs)
     return new_function
 
+
 def provide_db_services_c(func):
     @wraps(func)
     @provide_db_service_repository
@@ -25,6 +29,7 @@ def provide_db_services_c(func):
         c = db.get_container_client("services")
         return func(c, *args, **kwargs)
     return new_function
+
 
 @provide_db_client
 def list_databases(client):
@@ -34,6 +39,7 @@ def list_databases(client):
     for database in databases:
         print(database['id'])
 
+
 @provide_db_service_repository
 def list_containers(db):
     containers = list(db.list_containers())
@@ -41,6 +47,7 @@ def list_containers(db):
         return
     for container in containers:
         print(container['id'])
+
 
 @provide_db_services_c
 def list_items(c):
@@ -52,6 +59,3 @@ def list_items(c):
         return
     for item in items:
         print(item['id'])
-
-if __name__ == '__main__':
-    print(list_containers())

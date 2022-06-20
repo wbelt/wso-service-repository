@@ -1,6 +1,5 @@
 import os
 import logging
-from tkinter.tix import Tree
 from trace import Trace
 from flask import Flask, render_template, send_from_directory
 from db import provide_db_services_c
@@ -15,7 +14,8 @@ from opentelemetry.sdk.resources import SERVICE_NAME, SERVICE_NAMESPACE, SERVICE
 logging.basicConfig(format="%(asctime)s:%(levelname)s:%(message)s")
 logger = logging.getLogger(__name__)
 
-exporter = AzureMonitorTraceExporter.from_connection_string(os.environ.get('traceConnectionString'))
+exporter = AzureMonitorTraceExporter.from_connection_string(
+    os.environ.get('traceConnectionString'))
 
 trace.set_tracer_provider(
     TracerProvider(
@@ -38,29 +38,36 @@ app = Flask(__name__)
 
 FlaskInstrumentor().instrument_app(app, excluded_urls="hello")
 
+
 @app.route('/')
 def index():
     return render_template('index.html', list=getServices())
+
 
 @app.route('/favicon.ico')
 def favicon():
     return send_from_directory(os.path.join(app.root_path, 'static/images'), 'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
+
 @app.route('/hello')
 def hello():
     return render_template('hello.html', name="Test, I am here!")
+
 
 @app.route("/css/<path:path>")
 def cssFileRoute(path):
     return send_from_directory('static/sbs/css', path)
 
+
 @app.route("/js/<path:path>")
 def jsFileRoute(path):
     return send_from_directory('static/sbs/js', path)
 
+
 @app.route("/assets/<path:path>")
 def assetsFileRoute(path):
     return send_from_directory('static/sbs/assets', path)
+
 
 @app.route("/<path:path>")
 def genericTemplatePath(path):
@@ -70,11 +77,13 @@ def genericTemplatePath(path):
         logger.warning(f"404: template file not found for '{ path }'")
         return render_template('404.html'), 404
 
+
 @mainTracer.start_as_current_span("DB: get all services")
 @provide_db_services_c
 def getServices(c):
     items = list(c.read_all_items(max_item_count=100))
     return items
+
 
 @mainTracer.start_as_current_span("DB: count query")
 @provide_db_services_c
@@ -84,6 +93,7 @@ def countServices(c):
         enable_cross_partition_query=True
     ))
     return items[0]
+
 
 if __name__ == '__main__':
     logger.info("application started")
