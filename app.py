@@ -1,7 +1,7 @@
 import os
 import logging
 from trace import Trace
-from flask import Flask, render_template, send_from_directory
+from flask import Flask, redirect, render_template, send_from_directory
 from db import provide_db_services_c
 
 from opentelemetry import trace
@@ -40,6 +40,11 @@ FlaskInstrumentor().instrument_app(app, excluded_urls="hello")
 
 
 @app.route('/')
+def baseurl():
+    return redirect('/index.html')
+
+
+@app.route('/index.html')
 def index():
     return render_template('index.html', list=getServices())
 
