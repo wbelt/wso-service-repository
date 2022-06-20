@@ -1,5 +1,7 @@
 import os
 import logging
+from tkinter.tix import Tree
+from trace import Trace
 from flask import Flask, render_template, send_from_directory
 from db import provide_db_services_c
 
@@ -9,6 +11,13 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from azure.monitor.opentelemetry.exporter import AzureMonitorTraceExporter
 from opentelemetry.sdk.resources import SERVICE_NAME, SERVICE_NAMESPACE, SERVICE_INSTANCE_ID, Resource
+
+logging.basicConfig(format="%(asctime)s:%(levelname)s:%(message)s")
+logger = logging.getLogger(__name__)
+
+exporter = AzureMonitorTraceExporter.from_connection_string(
+    os.environ.get('traceConnectrionString')
+)
 
 trace.set_tracer_provider(
     TracerProvider(
@@ -21,25 +30,19 @@ trace.set_tracer_provider(
         )
     )
 )
-
-logging.basicConfig(format="%(asctime)s:%(levelname)s:%(message)s")
-logger = logging.getLogger(__name__)
-
-exporter = AzureMonitorTraceExporter.from_connection_string(
-    os.environ.get('traceConnectrionString')
-)
-
-tracer = trace.get_tracer(__name__)
+trace.logger = logger
 span_processor = BatchSpanProcessor(exporter)
 trace.get_tracer_provider().add_span_processor(span_processor)
 
+t = trace.get_tracer(__name__)
+
 app = Flask(__name__)
+
 FlaskInstrumentor().instrument_app(app, excluded_urls="hello")
 
 @app.route('/')
 def index():
-    services=getServices()
-    return render_template('index.html', list=services)
+    return render_template('index.html', list=getServices())
 
 @app.route('/favicon.ico')
 def favicon():
@@ -69,13 +72,13 @@ def genericTemplatePath(path):
         logger.warning(f"404: template file not found for '{ path }'")
         return render_template('404.html'), 404
 
-@tracer.start_as_current_span("DB: get all services")
+@t.start_as_current_span("DB: get all services")
 @provide_db_services_c
 def getServices(c):
     items = list(c.read_all_items(max_item_count=100))
     return items
 
-@tracer.start_as_current_span("DB: count query")
+@t.start_as_current_span("DB: count query")
 @provide_db_services_c
 def countServices(c):
     items = list(c.query_items(
