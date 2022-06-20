@@ -1,8 +1,15 @@
 
-import os
+import os, redis
 from azure.cosmos import exceptions, CosmosClient, PartitionKey
 from functools import wraps
 
+
+def provide_redis(func):
+    @wraps(func)
+    def new_function(*args, **kwargs):
+        r = redis.StrictRedis(host=os.environ['redisHost'], port=6380, password=os.environ['redisKey'], ssl=True)
+        return func(r, *args, **kwargs)
+    return new_function
 
 def provide_db_client(func):
     @wraps(func)

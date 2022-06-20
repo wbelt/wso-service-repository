@@ -1,7 +1,6 @@
-import os
-import logging
+import os, json, logging
 from flask import Flask, redirect, render_template, send_from_directory
-from db import provide_db_services_c
+from db import provide_redis, provide_db_services_c
 
 from opentelemetry import trace
 from opentelemetry.instrumentation.flask import FlaskInstrumentor
@@ -45,7 +44,7 @@ def baseurl():
 
 @app.route('/index.html')
 def index():
-    return render_template('index.html', list=getServices())
+    return render_template('index.html', list=rGetServices())
 
 
 @app.route('/favicon.ico')
@@ -57,6 +56,9 @@ def favicon():
 def hello():
     return render_template('hello.html')
 
+@app.route('/test')
+def test():
+    return render_template('test.html', value=rCountServices())
 
 @app.route("/css/<path:path>")
 def cssFileRoute(path):
@@ -88,10 +90,19 @@ def getServices(c):
     items = list(c.read_all_items(max_item_count=100))
     return items
 
+@mainTracer.start_as_current_span("redis: get all services")
+@provide_redis
+def rGetServices(r):
+    return json.loads(r.get("wso.webui.service.table"))
+
+@mainTracer.start_as_current_span("redis: count query")
+@provide_redis
+def rCountServices(r) -> int:
+    return r.get("wso.webui.service.count")
 
 @mainTracer.start_as_current_span("DB: count query")
 @provide_db_services_c
-def countServices(c):
+def countServices(c) -> int:
     items = list(c.query_items(
         query="SELECT VALUE COUNT(1) FROM c",
         enable_cross_partition_query=True
