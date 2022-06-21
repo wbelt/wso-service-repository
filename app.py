@@ -34,7 +34,7 @@ log_emitter_provider = LogEmitterProvider()
 set_log_emitter_provider(log_emitter_provider)
 
 exporter = AzureMonitorLogExporter.from_connection_string(
-    os.environ['APPLICATIONINSIGHTS_CONNECTION_STRING'])
+    os.environ['wsoTraceConnectionString'])
 
 log_emitter_provider.add_log_processor(BatchLogProcessor(exporter))
 handler = LoggingHandler()
