@@ -1,19 +1,21 @@
+from cgitb import handler
+from cmath import log
 import os, json, logging
 from flask import Flask, redirect, render_template, send_from_directory
 from db import provide_redis, provide_db_services_c
 
 from opentelemetry import trace
+from opentelemetry.sdk._logs import (
+    LogEmitterProvider,
+    LoggingHandler,
+    set_log_emitter_provider
+)
+from opentelemetry.sdk._logs.export import BatchLogProcessor
+
 from opentelemetry.instrumentation.flask import FlaskInstrumentor
 from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from azure.monitor.opentelemetry.exporter import AzureMonitorTraceExporter
+from azure.monitor.opentelemetry.exporter import AzureMonitorLogExporter
 from opentelemetry.sdk.resources import SERVICE_NAME, SERVICE_NAMESPACE, SERVICE_INSTANCE_ID, Resource
-
-logging.basicConfig(format="%(asctime)s:%(levelname)s:%(message)s")
-logger = logging.getLogger(__name__)
-
-exporter = AzureMonitorTraceExporter.from_connection_string(
-    os.environ['wsoTraceConnectionString'])
 
 trace.set_tracer_provider(
     TracerProvider(
@@ -27,10 +29,20 @@ trace.set_tracer_provider(
     )
 )
 
-span_processor = BatchSpanProcessor(exporter)
-trace.get_tracer_provider().add_span_processor(span_processor)
-
 mainTracer = trace.get_tracer(__name__)
+log_emitter_provider = LogEmitterProvider()
+set_log_emitter_provider(log_emitter_provider)
+
+exporter = AzureMonitorLogExporter.from_connection_string(
+    os.environ['APPLICATIONINSIGHTS_CONNECTION_STRING'])
+
+log_emitter_provider.add_log_processor(BatchLogProcessor(exporter))
+handler = LoggingHandler()
+
+logging.getLogger().addHandler(handler)
+logging.getLogger().setLevel(logging.NOTSET)
+
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
@@ -93,7 +105,7 @@ def getServices(c):
 @mainTracer.start_as_current_span("redis: get all services")
 @provide_redis
 def rGetServices(r):
-    logger.info(f"Current span is named: { trace.get_current_span.__name__ }")
+    logger.info(f"Current span is recording: { trace.get_current_span().is_recording() }")
     return json.loads(r.get("wso.webui.service.table"))
 
 @mainTracer.start_as_current_span("redis: count query")
