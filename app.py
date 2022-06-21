@@ -12,8 +12,8 @@ from opentelemetry.sdk.resources import SERVICE_NAME, SERVICE_NAMESPACE, SERVICE
 logging.basicConfig(format="%(asctime)s:%(levelname)s:%(message)s")
 logger = logging.getLogger(__name__)
 
-exporter = AzureMonitorTraceExporter.from_connection_string(
-    os.environ['wsoTraceConnectionString'])
+#exporter = AzureMonitorTraceExporter.from_connection_string(
+#    os.environ['wsoTraceConnectionString'])
 
 trace.set_tracer_provider(
     TracerProvider(
@@ -27,8 +27,8 @@ trace.set_tracer_provider(
     )
 )
 
-span_processor = BatchSpanProcessor(exporter)
-trace.get_tracer_provider().add_span_processor(span_processor)
+#span_processor = BatchSpanProcessor(exporter)
+#trace.get_tracer_provider().add_span_processor(span_processor)
 
 mainTracer = trace.get_tracer(__name__)
 
