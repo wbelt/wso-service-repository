@@ -11,6 +11,7 @@ from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from azure.monitor.opentelemetry.exporter import AzureMonitorTraceExporter
 from opentelemetry.sdk.resources import SERVICE_NAME, SERVICE_NAMESPACE, SERVICE_INSTANCE_ID, Resource
 
+__version__ = "0.3"
 trace.set_tracer_provider(
     TracerProvider(
         resource=Resource.create(
@@ -24,13 +25,13 @@ trace.set_tracer_provider(
 )
 
 mainTracer = trace.get_tracer(__name__)
-traceExporter = AzureMonitorTraceExporter.from_connection_string(
-    os.environ['wsoTraceConnectionString'])
+traceExporter = AzureMonitorTraceExporter.from_connection_string(os.environ['wsoTraceConnectionString'])
 span_processor = BatchSpanProcessor(traceExporter)
 trace.get_tracer_provider().add_span_processor(span_processor)
 
 app = Flask(__name__)
 FlaskInstrumentor().instrument_app(app, excluded_urls="hello")
+trace.get_current_span().add_event(f"application { __name__ } version { __version__ } started")
 
 
 @app.route('/')
@@ -97,5 +98,4 @@ def rCountServices(r) -> int:
 
 
 if __name__ == '__main__':
-    trace.get_current_span().add_event("application started")
     app.run()
