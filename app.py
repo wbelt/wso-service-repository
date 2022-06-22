@@ -31,7 +31,6 @@ trace.get_tracer_provider().add_span_processor(span_processor)
 
 app = Flask(__name__)
 FlaskInstrumentor().instrument_app(app, excluded_urls="hello")
-trace.get_current_span().add_event(f"application { __name__ } version { __version__ } started")
 
 
 @app.route('/')
