@@ -78,16 +78,15 @@ def genericTemplatePath(path):
     if os.path.exists(os.path.join('templates', path)):
         return render_template(path)
     else:
-        trace.get_current_span().add_event(
-            f"Error 404: template file not found for '{ path } ")
+        span = trace.get_current_span()
+        span.set_attribute("filename", path)
+        span.add_event(f"Error 404: template file not found for { path }")
         return render_template('404.html'), 404
 
 
 @mainTracer.start_as_current_span("redis: get all services")
 @provide_redis
 def rGetServices(r):
-    trace.get_current_span().add_event(
-        f"get_current_span().is_recording()={ trace.get_current_span().is_recording() }")
     return json.loads(r.get("wso.webui.service.table"))
 
 
