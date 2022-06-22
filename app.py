@@ -1,8 +1,7 @@
-from cgitb import handler
-from cmath import log
-import os, json, logging
+import os
+import json
 from flask import Flask, redirect, render_template, send_from_directory
-from db import provide_redis, provide_db_services_c
+from db import provide_redis
 
 from opentelemetry import trace
 from opentelemetry.instrumentation.flask import FlaskInstrumentor
@@ -25,17 +24,12 @@ trace.set_tracer_provider(
 )
 
 mainTracer = trace.get_tracer(__name__)
-
 traceExporter = AzureMonitorTraceExporter.from_connection_string(
     os.environ['wsoTraceConnectionString'])
-
-logger = logging.getLogger(__name__)
-
 span_processor = BatchSpanProcessor(traceExporter)
 trace.get_tracer_provider().add_span_processor(span_processor)
 
 app = Flask(__name__)
-
 FlaskInstrumentor().instrument_app(app, excluded_urls="hello")
 
 
@@ -58,9 +52,11 @@ def favicon():
 def hello():
     return render_template('hello.html')
 
+
 @app.route('/test')
 def test():
     return render_template('test.html', value=rCountServices())
+
 
 @app.route("/css/<path:path>")
 def cssFileRoute(path):
@@ -82,37 +78,25 @@ def genericTemplatePath(path):
     if os.path.exists(os.path.join('templates', path)):
         return render_template(path)
     else:
-        logger.warning(f"404: template file not found for '{ path }'")
+        trace.get_current_span().add_event(
+            f"Error 404: template file not found for '{ path } ")
         return render_template('404.html'), 404
 
-
-@mainTracer.start_as_current_span("DB: get all services")
-@provide_db_services_c
-def getServices(c):
-    items = list(c.read_all_items(max_item_count=100))
-    return items
 
 @mainTracer.start_as_current_span("redis: get all services")
 @provide_redis
 def rGetServices(r):
-    logger.warning(f"Current span is recording: { trace.get_current_span().is_recording() }")
+    trace.get_current_span().add_event(
+        f"get_current_span().is_recording()={ trace.get_current_span().is_recording() }")
     return json.loads(r.get("wso.webui.service.table"))
+
 
 @mainTracer.start_as_current_span("redis: count query")
 @provide_redis
 def rCountServices(r) -> int:
     return r.get("wso.webui.service.count")
 
-@mainTracer.start_as_current_span("DB: count query")
-@provide_db_services_c
-def countServices(c) -> int:
-    items = list(c.query_items(
-        query="SELECT VALUE COUNT(1) FROM c",
-        enable_cross_partition_query=True
-    ))
-    return items[0]
-
 
 if __name__ == '__main__':
-    logger.info("application started")
+    trace.get_current_span().add_event("application started")
     app.run()
